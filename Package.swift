@@ -5,11 +5,18 @@ import PackageDescription
 
 let package = Package(
     name: "HealthCheck",
+    platforms: [
+        .macOS(.v15)
+    ],
+    dependencies: [
+        .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.11.0")
+    ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .executableTarget(
-            name: "HealthCheck"
+            name: "HealthCheck",
+            dependencies: [
+                .product(name: "MCP", package: "swift-sdk")
+            ]
         ),
     ]
 )
