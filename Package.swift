@@ -26,6 +26,7 @@ let package = Package(
             name: "HealthCheckTests",
             dependencies: [
                 "HealthCheck",
+                "PDF",
                 .product(name: "GRDB", package: "GRDB.swift")
             ]
         ),

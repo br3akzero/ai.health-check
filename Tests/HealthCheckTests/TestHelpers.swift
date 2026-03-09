@@ -1,6 +1,7 @@
 import Foundation
 import GRDB
 @testable import HealthCheck
+@testable import PDF
 
 func makeDB() throws -> DatabaseManager {
     try DatabaseManager()
@@ -27,6 +28,43 @@ func insertPatient(db: DatabaseManager) throws -> Int64 {
     try db.dbQueue.write { db in
         try makePatient().inserted(db).id!
     }
+}
+
+func makePageExtraction(
+    pageNumber: Int = 1,
+    pdfKitText: String = "",
+    ocrText: String = "",
+    ocrConfidence: Float = 0.9,
+    paragraphs: [String] = []
+) -> PageExtraction {
+    PageExtraction(
+        pageNumber: pageNumber,
+        pdfKitText: pdfKitText,
+        ocrText: ocrText,
+        ocrConfidence: ocrConfidence,
+        tables: [],
+        lists: [],
+        paragraphs: paragraphs,
+        detectedData: []
+    )
+}
+
+func makeReconciledPage(
+    pageNumber: Int = 1,
+    text: String,
+    paragraphs: [String] = []
+) -> ReconciledPage {
+    ReconciledPage(
+        pageNumber: pageNumber,
+        text: text,
+        textSource: .pdfKit,
+        qualityScore: 0.9,
+        ocrConfidence: 0.9,
+        tables: [],
+        lists: [],
+        paragraphs: paragraphs,
+        detectedData: []
+    )
 }
 
 func makeDocument(patientId: Int64, fileHash: String = "abc123") -> Document {
