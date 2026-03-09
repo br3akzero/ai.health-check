@@ -4,8 +4,19 @@ import Foundation
 let dbPath = FileManager.default.currentDirectoryPath + "/Data/healthcheck.sqlite"
 let dbDir = (dbPath as NSString).deletingLastPathComponent
 
-if !FileManager.default.fileExists(atPath: dbDir) {
-    try FileManager.default.createDirectory(atPath: dbDir, withIntermediateDirectories: true)
+if CommandLine.arguments.contains("--init") {
+    if !FileManager.default.fileExists(atPath: dbDir) {
+        try FileManager.default.createDirectory(atPath: dbDir, withIntermediateDirectories: true)
+    }
+    let _ = try DatabaseManager(at: dbPath)
+    print("Database initialized at: \(dbPath)")
+    exit(0)
+}
+
+guard FileManager.default.fileExists(atPath: dbPath) else {
+    fputs("Error: Database not found at \(dbPath)\n", stderr)
+    fputs("Run 'swift run HealthCheck --init' to create it.\n", stderr)
+    exit(1)
 }
 
 let db = try DatabaseManager(at: dbPath)
