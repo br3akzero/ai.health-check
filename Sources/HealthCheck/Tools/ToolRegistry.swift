@@ -10,6 +10,7 @@ struct ToolRegistry {
         let crudCoreTools = CRUDCoreTools(db: db)
         let crudClinicalTools = CRUDClinicalTools(db: db)
         let crudDocumentTools = CRUDDocumentTools(db: db)
+        let queryTools = QueryTools(db: db)
 
         await server.withMethodHandler(ListTools.self) { _ in
             return .init(tools:
@@ -18,6 +19,7 @@ struct ToolRegistry {
                 + crudCoreTools.tools
                 + crudClinicalTools.tools
                 + crudDocumentTools.tools
+                + queryTools.tools
             )
         }
 
@@ -35,6 +37,9 @@ struct ToolRegistry {
                 return result
             }
             if let result = try await crudDocumentTools.handle(params) {
+                return result
+            }
+            if let result = try await queryTools.handle(params) {
                 return result
             }
             return .init(content: [.text("Unknown tool: \(params.name)")], isError: true)
