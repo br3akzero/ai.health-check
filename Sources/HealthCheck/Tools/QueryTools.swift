@@ -31,6 +31,7 @@ struct QueryTools {
         // Document
         case "search_documents": return try await searchDocuments(params)
         case "get_document": return try await getDocument(params)
+        case "get_document_pages": return try await getDocumentPages(params)
         case "list_documents": return try await listDocuments(params)
         default: return nil
         }

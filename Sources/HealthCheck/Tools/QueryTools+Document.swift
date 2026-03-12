@@ -25,6 +25,18 @@ extension QueryTools {
                 ])
             ),
             Tool(
+                name: "get_document_pages",
+                description: """
+                    Get per-page extraction data for document review. Returns PDFKit text, OCR text, \
+                    reconciled text, and ingest_type (which source was picked) for each page. \
+                    Use this to show the user both extraction versions so they can verify the reconciled text is correct.
+                    """,
+                inputSchema: schema([
+                    "document_id": .object(["type": "integer", "description": "Document ID"]),
+                    "page_number": .object(["type": "integer", "description": "Specific page number (optional, returns all pages if omitted)"]),
+                ])
+            ),
+            Tool(
                 name: "list_documents",
                 description: "List all documents with optional filters.",
                 inputSchema: schema([
@@ -165,6 +177,38 @@ extension QueryTools {
         }
 
         return .init(content: [.text(String(data: jsonData, encoding: .utf8) ?? "{}")], isError: false)
+    }
+
+    func getDocumentPages(_ params: CallTool.Parameters) async throws -> CallTool.Result {
+        guard let args = params.arguments,
+              let documentId = intArg(args, "document_id") else {
+            return .init(content: [.text("Missing required parameter: document_id")], isError: true)
+        }
+
+        let pageNumber = intArg(args, "page_number")
+
+        let jsonData = try await db.dbQueue.read { db -> Data in
+            var query = DocumentPage.filter(Column("document_id") == documentId)
+            if let pageNumber {
+                query = query.filter(Column("page_number") == pageNumber)
+            }
+            let pages = try query.order(Column("page_number")).fetchAll(db)
+
+            let results = pages.map { page in
+                var entry: [String: Any] = [
+                    "page_number": page.pageNumber,
+                    "reconciled_text": page.reconciledText,
+                    "ingest_type": page.ingestType,
+                ]
+                if let pdfkit = page.pdfkitText { entry["pdfkit_text"] = pdfkit }
+                if let ocr = page.ocrText { entry["ocr_text"] = ocr }
+                return entry
+            }
+
+            return try JSONSerialization.data(withJSONObject: results, options: [.prettyPrinted, .sortedKeys])
+        }
+
+        return .init(content: [.text(String(data: jsonData, encoding: .utf8) ?? "[]")], isError: false)
     }
 
     func listDocuments(_ params: CallTool.Parameters) async throws -> CallTool.Result {

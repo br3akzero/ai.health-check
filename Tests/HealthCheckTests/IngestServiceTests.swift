@@ -7,24 +7,40 @@ import GRDB
 // MARK: - Mock Extractor
 
 private struct MockExtractor: DocumentExtractor {
-    let pages: [ReconciledPage]
+    let pages: [ExtractedPage]
 
-    func extract(from url: URL) async throws -> [ReconciledPage] {
+    func extract(from url: URL) async throws -> [ExtractedPage] {
         pages
     }
 }
 
 private func makeMockExtractor() -> MockExtractor {
     MockExtractor(pages: [
-        makeReconciledPage(
-            pageNumber: 1,
-            text: "Patient blood pressure was 120/80 mmHg.",
-            paragraphs: ["Patient blood pressure was 120/80 mmHg."]
+        ExtractedPage(
+            raw: makePageExtraction(
+                pageNumber: 1,
+                pdfKitText: "Patient blood pressure was 120/80 mmHg.",
+                ocrText: "Patient blood pressure was 120/80 mmHg.",
+                paragraphs: ["Patient blood pressure was 120/80 mmHg."]
+            ),
+            reconciled: makeReconciledPage(
+                pageNumber: 1,
+                text: "Patient blood pressure was 120/80 mmHg.",
+                paragraphs: ["Patient blood pressure was 120/80 mmHg."]
+            )
         ),
-        makeReconciledPage(
-            pageNumber: 2,
-            text: "Glucose level was 95 mg/dL within normal range.",
-            paragraphs: ["Glucose level was 95 mg/dL within normal range."]
+        ExtractedPage(
+            raw: makePageExtraction(
+                pageNumber: 2,
+                pdfKitText: "Glucose level was 95 mg/dL within normal range.",
+                ocrText: "Glucose level was 95 mg/dL within normal range.",
+                paragraphs: ["Glucose level was 95 mg/dL within normal range."]
+            ),
+            reconciled: makeReconciledPage(
+                pageNumber: 2,
+                text: "Glucose level was 95 mg/dL within normal range.",
+                paragraphs: ["Glucose level was 95 mg/dL within normal range."]
+            )
         ),
     ])
 }

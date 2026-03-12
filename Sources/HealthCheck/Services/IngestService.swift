@@ -22,9 +22,11 @@ struct IngestService {
 
         let documentId = try await createDocument(filePath: filePath, fileHash: fileHash, fileName: url.lastPathComponent, patientId: patientId)
         let pages = try await extractor.extract(from: url)
-        let chunks = chunkPages(pages)
+        let reconciled = pages.map { $0.reconciled }
+        let chunks = chunkPages(reconciled)
         try await storeChunks(chunks, documentId: documentId)
-        let rawText = pages.map { $0.text }.joined(separator: "\n\n")
+        try await storePages(pages, documentId: documentId)
+        let rawText = reconciled.map { $0.text }.joined(separator: "\n\n")
         try await updateDocument(id: documentId, pageCount: pages.count, rawText: rawText, status: "pending_review")
 
         return IngestResult(documentId: documentId, pageCount: pages.count, chunkCount: chunks.count, status: "pending_review")
@@ -93,6 +95,31 @@ private extension IngestService {
                     pageNumber: chunk.pageNumber,
                     sectionHeading: chunk.sectionHeading,
                     tokenCount: chunk.tokenCount,
+                    createdAt: now
+                )
+                _ = try record.inserted(db)
+            }
+        }
+    }
+
+    func storePages(_ pages: [ExtractedPage], documentId: Int64) async throws {
+        let now = ISO8601DateFormatter().string(from: Date())
+
+        try await db.dbQueue.write { db in
+            for page in pages {
+                let ingestType = switch page.reconciled.textSource {
+                case .pdfKit: "pdfkit"
+                case .ocr: "ocr"
+                }
+
+                let record = DocumentPage(
+                    id: nil,
+                    documentId: documentId,
+                    pageNumber: page.raw.pageNumber,
+                    pdfkitText: page.raw.pdfKitText,
+                    ocrText: page.raw.ocrText,
+                    reconciledText: page.reconciled.text,
+                    ingestType: ingestType,
                     createdAt: now
                 )
                 _ = try record.inserted(db)

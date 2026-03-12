@@ -5,7 +5,7 @@ import GRDB
 
 // MARK: - Migration Tests
 
-@Test("All 18 tables exist after migration")
+@Test("All 19 tables exist after migration")
 func allTablesExist() throws {
     let manager = try makeDB()
 
@@ -13,7 +13,7 @@ func allTablesExist() throws {
         "patient", "facility", "doctor", "facility_doctor", "document",
         "encounter", "document_encounter", "diagnosis", "medication", "lab_result",
         "vital_sign", "procedure_record", "immunization", "allergy", "imaging",
-        "document_chunk", "document_summary", "extracted_entity"
+        "document_chunk", "document_summary", "extracted_entity", "document_page"
     ]
 
     let actualTables: Set<String> = try manager.dbQueue.read { db in

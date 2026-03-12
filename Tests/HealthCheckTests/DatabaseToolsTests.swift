@@ -6,7 +6,7 @@ import GRDB
 
 // MARK: - Database Tools Tests
 
-@Test("getSchemaInfo returns all 18 tables")
+@Test("getSchemaInfo returns all 19 tables")
 func schemaInfoAllTables() async throws {
     let manager = try makeDB()
     let tools = DatabaseTools(db: manager)
@@ -29,7 +29,7 @@ func schemaInfoAllTables() async throws {
         "patient", "facility", "doctor", "facility_doctor", "document",
         "encounter", "document_encounter", "diagnosis", "medication", "lab_result",
         "vital_sign", "procedure_record", "immunization", "allergy", "imaging",
-        "document_chunk", "document_summary", "extracted_entity"
+        "document_chunk", "document_summary", "extracted_entity", "document_page"
     ]
 
     for table in expectedTables {
