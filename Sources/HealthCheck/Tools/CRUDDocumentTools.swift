@@ -8,6 +8,25 @@ struct CRUDDocumentTools {
     var tools: [Tool] {
         [
             Tool(
+                name: "update_document",
+                description: """
+                    Update document metadata and review status after extraction. \
+                    IMPORTANT: Before setting processing_status to 'completed', you MUST present your extraction summary to the user and ask for explicit confirmation. \
+                    Show them: document type, date, facility, doctor, number of entities extracted, and any values you were uncertain about. \
+                    Only mark completed after the user approves. If the user rejects or requests changes, make corrections and re-confirm.
+                    """,
+                inputSchema: schema([
+                    "document_id": .object(["type": "integer", "description": "Document ID"]),
+                    "document_type": .object(["type": "string", "description": "Type: lab_report, prescription, discharge, imaging, referral, insurance, other (optional)"]),
+                    "document_date": .object(["type": "string", "description": "Document date ISO 8601 (optional)"]),
+                    "tags": .object(["type": "string", "description": "Comma-separated tags (optional)"]),
+                    "processing_status": .object(["type": "string", "description": "Status: pending, pending_review, processing, completed, failed (optional)"]),
+                    "facility_id": .object(["type": "integer", "description": "Link to facility (optional)"]),
+                    "doctor_id": .object(["type": "integer", "description": "Link to doctor (optional)"]),
+                    "language": .object(["type": "string", "description": "Document language code, e.g. en, bs, tr (optional)"]),
+                ])
+            ),
+            Tool(
                 name: "store_extraction_results",
                 description: "Batch-insert extracted entities from AI analysis. Links raw text spans to clinical records via the extracted_entity table. Returns count of entities stored.",
                 inputSchema: schema([
@@ -43,6 +62,8 @@ struct CRUDDocumentTools {
 
     func handle(_ params: CallTool.Parameters) async throws -> CallTool.Result? {
         switch params.name {
+        case "update_document":
+            return try await updateDocument(params)
         case "store_extraction_results":
             return try await storeExtractionResults(params)
         case "save_document_summary":
@@ -56,6 +77,34 @@ struct CRUDDocumentTools {
 // MARK: - Database API
 
 private extension CRUDDocumentTools {
+    func updateDocument(_ params: CallTool.Parameters) async throws -> CallTool.Result {
+        guard let args = params.arguments,
+              let documentId = intArg(args, "document_id") else {
+            return .init(content: [.text("Missing required parameter: document_id")], isError: true)
+        }
+
+        let now = ISO8601DateFormatter().string(from: .now)
+
+        try await db.dbQueue.write { db in
+            guard var doc = try Document.fetchOne(db, key: documentId) else {
+                throw DatabaseError(message: "Document not found")
+            }
+
+            if let type = stringArg(args, "document_type") { doc.documentType = type }
+            if let date = stringArg(args, "document_date") { doc.documentDate = date }
+            if let tags = stringArg(args, "tags") { doc.tags = tags }
+            if let status = stringArg(args, "processing_status") { doc.processingStatus = status }
+            if let facilityId = intArg(args, "facility_id") { doc.facilityId = facilityId }
+            if let doctorId = intArg(args, "doctor_id") { doc.doctorId = doctorId }
+            if let language = stringArg(args, "language") { doc.language = language }
+            doc.updatedAt = now
+
+            try doc.update(db)
+        }
+
+        return .init(content: [.text("{\"updated\": true, \"document_id\": \(documentId)}")], isError: false)
+    }
+
     func storeExtractionResults(_ params: CallTool.Parameters) async throws -> CallTool.Result {
         guard let args = params.arguments,
               let documentId = intArg(args, "document_id"),
