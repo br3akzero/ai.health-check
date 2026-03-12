@@ -11,9 +11,13 @@ struct CRUDDocumentTools {
                 name: "update_document",
                 description: """
                     Update document metadata and review status after extraction. \
-                    IMPORTANT: Before setting processing_status to 'completed', you MUST present your extraction summary to the user and ask for explicit confirmation. \
-                    Show them: document type, date, facility, doctor, number of entities extracted, and any values you were uncertain about. \
-                    Only mark completed after the user approves. If the user rejects or requests changes, make corrections and re-confirm.
+                    IMPORTANT: Before setting processing_status to 'completed', you MUST do a full verification with the user. \
+                    Step 1: Show the raw document text (call get_document_text or get_document_pages). \
+                    Step 2: Next to it, list EVERY entity you extracted with its value. \
+                    Step 3: Identify any sections of the raw text you did NOT extract from and explicitly tell the user. \
+                    Step 4: Ask the user to confirm nothing was missed. \
+                    Common mistakes: skipping differential/formula sections in lab reports, missing medication dosages, ignoring vital signs embedded in clinical notes. \
+                    Only mark completed after the user explicitly approves. If they find missing data, extract it and re-verify.
                     """,
                 inputSchema: schema([
                     "document_id": .object(["type": "integer", "description": "Document ID"]),
