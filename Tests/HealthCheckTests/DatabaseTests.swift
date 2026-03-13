@@ -32,7 +32,7 @@ func patientColumns() throws {
 
     let expectedColumns: Set<String> = [
         "id", "first_name", "last_name", "date_of_birth", "gender",
-        "blood_type", "created_at", "updated_at"
+        "blood_type", "notes", "created_at", "updated_at"
     ]
 
     let actualColumns: Set<String> = try manager.dbQueue.read { db in

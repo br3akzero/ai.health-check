@@ -17,6 +17,7 @@ struct CRUDCoreTools {
                     "date_of_birth": .object(["type": "string", "description": "Date of birth (ISO 8601)"]),
                     "gender": .object(["type": "string", "description": "Gender"]),
                     "blood_type": .object(["type": "string", "description": "Blood type (e.g. O+, A-)"]),
+                    "notes": .object(["type": "string", "description": "Free-text notes (social history, lifestyle, etc.)"]),
                 ])
             ),
             Tool(
@@ -85,9 +86,10 @@ private extension CRUDCoreTools {
             if let existingId, var existing = try Patient.fetchOne(db, key: existingId) {
                 existing.firstName = firstName
                 existing.lastName = lastName
-                existing.dateOfBirth = args["date_of_birth"].flatMap { if case .string(let v) = $0 { v } else { nil } }
-                existing.gender = args["gender"].flatMap { if case .string(let v) = $0 { v } else { nil } }
-                existing.bloodType = args["blood_type"].flatMap { if case .string(let v) = $0 { v } else { nil } }
+                if let dob = stringArg(args, "date_of_birth") { existing.dateOfBirth = dob }
+                if let gender = stringArg(args, "gender") { existing.gender = gender }
+                if let bloodType = stringArg(args, "blood_type") { existing.bloodType = bloodType }
+                if let notes = stringArg(args, "notes") { existing.notes = notes }
                 existing.updatedAt = now
                 try existing.update(db)
                 return existingId
@@ -99,6 +101,7 @@ private extension CRUDCoreTools {
                     dateOfBirth: args["date_of_birth"].flatMap { if case .string(let v) = $0 { v } else { nil } },
                     gender: args["gender"].flatMap { if case .string(let v) = $0 { v } else { nil } },
                     bloodType: args["blood_type"].flatMap { if case .string(let v) = $0 { v } else { nil } },
+                    notes: args["notes"].flatMap { if case .string(let v) = $0 { v } else { nil } },
                     createdAt: now,
                     updatedAt: now
                 )

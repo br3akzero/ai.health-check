@@ -11,6 +11,7 @@ struct Patient: Codable, FetchableRecord, MutablePersistableRecord, Sendable {
     var dateOfBirth: String?
     var gender: String?
     var bloodType: String?
+    var notes: String?
     var createdAt: String
     var updatedAt: String
 

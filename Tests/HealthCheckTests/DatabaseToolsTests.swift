@@ -63,6 +63,7 @@ func schemaInfoPatientColumns() async throws {
         ("date_of_birth", "TEXT", "nullable"),
         ("gender", "TEXT", "nullable"),
         ("blood_type", "TEXT", "nullable"),
+        ("notes", "TEXT", "nullable"),
         ("created_at", "TEXT", "required"),
         ("updated_at", "TEXT", "required"),
     ]

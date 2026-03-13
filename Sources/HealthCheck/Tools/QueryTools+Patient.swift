@@ -43,6 +43,7 @@ extension QueryTools {
             if let dob = patient.dateOfBirth { result["date_of_birth"] = dob }
             if let gender = patient.gender { result["gender"] = gender }
             if let bloodType = patient.bloodType { result["blood_type"] = bloodType }
+            if let notes = patient.notes { result["notes"] = notes }
 
             let diagnoses = try Diagnosis.filter(Column("patient_id") == patientId && Column("status") != "resolved")
                 .order(Column("diagnosis_date").desc)
