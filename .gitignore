@@ -11,3 +11,5 @@ CLAUDE.md
 /Data/
 /Assets/
 /Patients/
+.agents
+opencode.json
